@@ -16,7 +16,7 @@ def init_db():
     conn.close()
 
 
-def add_expense(item, amount, category):
+def add_expenses(item, amount, category):
     conn = sqlite3.connect("expenses.db")
     cursor = conn.cursor()
     cursor.execute(
@@ -43,7 +43,63 @@ def view_expenses():
         print(f"[{row[0]}] {row[1]} - €{row[2]:.2f} ({row[3]})")
 
 
-if __name__ == "__main__":
+def delete_expenses(expense_id):
+    conn = sqlite3.connect("expenses.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "DELETE FROM expenses where ID = ?", (expense_id,)
+    )  # cursor execute strictly requires a touble or list as its second arguement (5,) is what tells pyhton that "this is a 1-item tuple"
+    conn.commit()
+    change_checker = cursor.rowcount
+    conn.close()
+
+    if change_checker == 0:
+        print(f"NO expence found with ID {expense_id}")
+
+    else:
+        print(f"Deleted expence [ {expense_id}. ]")
+
+
+def main():
     init_db()
-    add_expense("Coffee", 3.50, "Food")
-    view_expenses()
+    while True:
+        print("\n--- Expense Tracker ---")
+        print("1. Add expense")
+        print("2. View all expenses")
+        print("3. Delete an expense")
+        print("4. Quit")
+
+        choice = input("Choose an option (1-4): ").strip()
+
+        if choice == "1":
+            item = input("Item name: ").strip()
+            try:
+                amount = float(input("Amount (€): "))
+            except ValueError:
+                print("Invalid amount. Please enter a number (e.g., 4.50).")
+                continue
+            category = input("Category (e.g., Food, Transport): ").strip()
+            add_expenses(item, amount, category)
+
+        elif choice == "2":
+            view_expenses()
+
+        elif choice == "3":
+            view_expenses()
+            try:
+                expense_id = int(input("Enter the ID to delete: "))
+            except ValueError:
+                print("Invalid ID. Please enter a whole number.")
+                continue
+            delete_expenses(expense_id)
+
+        elif choice == "4":
+            print("Goodbye!")
+            break
+
+        else:
+            print("Invalid choice. Please type 1, 2, 3, or 4.")
+
+
+if __name__ == "__main__":
+    main()
